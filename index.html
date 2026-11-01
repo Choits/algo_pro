@@ -33,6 +33,7 @@
     </div>
     <div class="grid" id="cards"></div>
     <p class="hint" style="margin-top:18px">● 제출함 &nbsp; ◐ 작성 중 &nbsp; ○ 아직 시작 안 함 &nbsp;·&nbsp; 수업이 끝나면 꼭 <b>제출하기</b>를 누르세요. 다른 기기에서 이어 쓸 때는 활동지 아래 <b>내 제출 불러오기</b>를 누르면 돼요.</p>
+    <p class="hint"><span id="sync"></span> &nbsp;·&nbsp; <button type="button" id="clear" class="btn sm ghost">이 기기에 저장된 내 기록 지우기</button></p>
   </section>
 
   <p style="text-align:center;margin-top:30px"><a href="teacher.html">선생님 화면</a></p>
@@ -60,6 +61,23 @@
     }).join('');
     $('#list').style.display = '';
   }
+  // 구글 시트의 실제 제출 기록으로 ‘제출함’ 표시 맞추기 (시트에서 지우면 여기서도 사라짐)
+  async function syncStatus() {
+    const u = user(); if (!u) return;
+    $('#sync').textContent = '제출 기록 확인 중…';
+    const res = await AKN.api({ action: 'mystatus', cls: u.cls, grp: u.grp, num: u.num });
+    if (!res || !res.ok || !res.ws) { $('#sync').textContent = '제출 기록을 확인하지 못했어요 (이 기기의 기록으로 표시 중)'; return; }
+    const m = meta(); m.submitted = {};
+    Object.keys(res.ws).forEach(k => { m.submitted[k] = res.ws[k]; });
+    AKN.setMeta(m, u);
+    $('#sync').textContent = '제출 기록 확인 완료 ' + new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'});
+    showList();
+  }
+  $('#clear').addEventListener('click', () => {
+    const u = user(); if (!u) return;
+    if (!confirm(`이 기기에 저장된 ${who(u)}의 활동지 내용과 표시를 모두 지울까요?\n(구글 시트에 제출한 내용은 지워지지 않아요)`)) return;
+    AKN.clearLocal(u); showList(); syncStatus(); AKN.toast('이 기기의 기록을 지웠어요');
+  });
   $('#go').addEventListener('click', () => {
     const nu = {cls: $('#cls').value, grp: $('#grp').value, num: $('#num').value};
     const old = user();
@@ -67,9 +85,9 @@
         !confirm(`${who(old)}에서 ${who(nu)}(으)로 바꿀까요?\n(바꾸기 전 내용은 이 기기에 그대로 남아 있어요)`)) return;
     setUser(nu);
     const next = q.get('next');
-    if (next && /^ws[1-8]\.html$/.test(next)) location.href = next; else { showList(); AKN.toast(who(nu) + '(으)로 시작합니다'); }
+    if (next && /^ws[1-8]\.html$/.test(next)) location.href = next; else { showList(); syncStatus(); AKN.toast(who(nu) + '(으)로 시작합니다'); }
   });
-  if (u && !q.get('change')) showList();
+  if (u && !q.get('change')) { showList(); syncStatus(); }
 })();
 </script>
 </body>
