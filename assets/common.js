@@ -59,6 +59,7 @@
   function meta(u) { return LS.get(`akn_meta:${uid(u)}`, { saved: {}, submitted: {} }); }
   function setMeta(m, u) { LS.set(`akn_meta:${uid(u)}`, m); }
 
+
   /* ---------- 상태 ---------- */
   let store = {};
   let wsId = 0;
@@ -192,6 +193,11 @@
       const rows = db['제출'].filter(r => same(r['학급'], params.cls) && same(r['모둠'], params.grp) && same(r['활동지'], params.ws) && !(params.except && same(r['번호'], params.except)) && !(params.num && !same(r['번호'], params.num)));
       rows.sort((x, y) => String(y['시각']).localeCompare(String(x['시각'])));
       return rows.length ? { ok: true, row: rows[0] } : { ok: true, row: null };
+    }
+    if (a === 'mystatus') {
+      const ws = {};
+      db['제출'].filter(r => same(r['학급'], params.cls) && same(r['모둠'], params.grp) && same(r['번호'], params.num)).forEach(r => { ws[r['활동지']] = r['시각']; });
+      return { ok: true, ws };
     }
     if (a === 'feedback') return { ok: true, rows: db['동료평가'].filter(r => same(r['학급'], params.cls) && same(r['대상모둠'], params.grp)) };
     if (a === 'all') {
@@ -386,13 +392,20 @@
     if (!viewMode && wsId) { const m = meta(); const st = $('#akn-save'); if (st) st.textContent = m.submitted[wsId] ? '제출함 ' + hhmm(m.submitted[wsId]) : (m.saved[wsId] ? '자동 저장됨' : ''); }
   }
 
+  /* 이 기기에 저장된 한 학생의 기록 지우기 */
+  function clearLocal(u) {
+    u = u || user(); if (!u) return;
+    for (let i = 1; i <= 8; i++) LS.del(wsKey(i, u));
+    LS.del(`akn_meta:${uid(u)}`);
+  }
+
   /* 다른 활동지에 저장된 내 값 읽기 (예: 8차시에서 6·7차시 숫자 가져오기) */
   function peek(otherWs, k) { const s = LS.get(wsKey(otherWs), {}); return s[k]; }
 
   window.AKN = {
     C, WS, TABS, LS, SS, $, $$, esc, num, parseSeq, round, avg, hhmm, now,
     user, setUser, who, uid, meta, wsKey,
-    boot, ready, get, set, del, restore, dynTable, api, isDemo, submit, toast, modal,
+    boot, ready, get, set, del, restore, clearLocal, setMeta, dynTable, api, isDemo, submit, toast, modal,
     updownGame, binarySeq, chart, PALETTE, peek,
     get viewMode() { return viewMode; }, get store() { return store; }
   };
