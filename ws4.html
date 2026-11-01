@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>활동지 4 · 탐색 알고리즘 비교 분석표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <div class="ws-head"><span class="tag">4차시</span><span class="tag">컴퓨팅 설계</span><span class="tag">모둠</span>
+    <h1>[활동지 4] 탐색 알고리즘 비교 분석표</h1>
+    <p>어떤 질문이 좋은 질문일까? 세 알고리즘의 효율성을 비교하고, 이진 탐색의 조건과 좋은 질문을 찾습니다.</p></div>
+
+  <section class="card">
+    <h2><span class="n">1</span> 효율성: 교과서 함께 해 보기 - 최댓값이 커지면 수행 횟수는?</h2>
+    <p class="hint">모둠이 맡은 최댓값부터 채우세요. 알고리즘 1·2는 “한 번에 몇 개씩 지워지나”로, 알고리즘 3은 종이 수 띠를 반씩 접어 셉니다.</p>
+    <div class="tbl-wrap"><table class="t" id="eff"></table></div>
+    <div class="btns no-view"><button type="button" class="btn sm ghost" id="chk1">확인하기</button><span id="r1"></span></div>
+    <div class="row">
+      <div><h3>우리 모둠 그래프 (최대 수행 횟수)</h3><div class="chartbox"><canvas id="mine"></canvas></div></div>
+      <div><h3>우리 반 평균 그래프 <button type="button" class="btn sm ghost no-view" id="loadCls">불러오기</button></h3><div class="chartbox"><canvas id="cls"></canvas></div></div>
+    </div>
+    <div class="line"><b>[선그래프 해석]</b> 최댓값이 10에서 100으로 10배가 되면 알고리즘 1·2의 최대 수행 횟수는
+      (<input class="blank" data-k="i1" style="width:60px">)배, 알고리즘 3은 (<input class="blank" data-k="i2" style="width:60px">)번 늘어난다.</div>
+    <div class="line">알고리즘 2는 양 끝을 번갈아 불러 빨라 보이는데, 최대 수행 횟수는 알고리즘 (<input class="blank" data-k="i3" style="width:50px">)과 같다. 왜 그럴까?
+      <input class="blank" data-k="i4" style="width:min(420px,75vw)"></div>
+    <div class="line">1·3차시 우리 반 실제 기록(1~30)과 비교하면: <button type="button" class="btn sm ghost no-view" id="loadReal">우리 반 실제 기록 보기</button></div>
+    <div id="real" class="hint"></div>
+    <textarea data-k="i5" placeholder="예) 실제로 가운데를 부른 친구들은 평균 4번 정도로, 계산한 최대 5번 안에 들었다."></textarea>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span> 조건: 뒤섞인 카드에서도 이진 탐색이 될까?</h2>
+    <p class="hint">카드 20장 중 <b>17번</b> 카드를 이진 탐색으로 찾아보세요. 먼저 <b>가운데 카드</b>를 뒤집어 보고, 다음에 어느 쪽을 버려야 할지 생각해 봅니다.</p>
+    <div class="btns no-view"><button type="button" class="btn sm" id="shuf">뒤섞인 카드로 하기</button><button type="button" class="btn sm green" id="sort">정렬된 카드로 하기</button><span id="cardMsg" style="font-weight:700"></span></div>
+    <div class="cards" id="cards"></div>
+    <div class="line">뒤섞인 카드 20장에서 17번 카드를 이진 탐색으로 찾아 보았더니: <input class="blank" data-k="c1" style="width:min(460px,80vw)"></div>
+    <div class="line">이진 탐색을 쓰려면 후보가 (<input class="blank" data-k="c2" style="width:150px">) 있어야 한다.</div>
+    <div class="line">생활 속 예: 사전은 (<input class="blank" data-k="c3" style="width:110px">)순, 도서관 책은 (<input class="blank" data-k="c4" style="width:110px">)순으로 꽂혀 있다.</div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span> 동물 스무고개 결정 트리 설계 (동물 카드 16장)</h2>
+    <p class="hint">맨 위 상자에서 첫 질문을 고르면 후보가 ‘예’와 ‘아니오’로 나뉩니다. 각 상자마다 다음 질문을 골라 후보가 1마리가 될 때까지 나누세요. 특징이 완전히 같아 더 나눌 수 없는 동물은 “○○입니까?”로 하나씩 묻습니다.</p>
+    <div class="btns no-view"><button type="button" class="btn sm ghost" id="treeReset">트리 처음부터</button></div>
+    <div class="tree" id="tree"></div>
+    <div class="line"><b>[우리 모둠 트리]</b> 첫 질문: <b id="tq1">-</b> (예 <b id="ty">-</b>마리 / 아니오 <b id="tn">-</b>마리) · 두 번째 질문(예 쪽): <b id="tq2y">-</b> · 두 번째 질문(아니오 쪽): <b id="tq2n">-</b></div>
+    <h3>동물별 질문 수 (트리에서 자동 계산)</h3>
+    <div class="tbl-wrap"><table class="t" id="cnt"></table></div>
+    <div class="line">질문 수 합계: (<b id="sum">-</b>) ÷ 16 = 평균 (<b id="avg">-</b>)번, 가장 많이 물은 동물: (<b id="mx">-</b>)</div>
+    <h3>비교</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>비교 (선생님 제시)</th><th>평균 질문 수</th><th>최대 질문 수</th></tr></thead>
+      <tbody><tr><td>① 하나씩 “○○입니까?” 묻기</td><td class="c">약 8.4번</td><td class="c">15번</td></tr>
+      <tr><td>② 치우친 질문부터 (“다리가 6개 이상인가?”)</td><td class="c">약 5.3번</td><td class="c">9번</td></tr>
+      <tr><td>③ 절반으로 나누는 질문부터 (“포유류인가?”)</td><td class="c">약 4.1번</td><td class="c">5번</td></tr>
+      <tr><td class="lab">우리 모둠 트리</td><td class="c"><b id="avg2">-</b></td><td class="c"><b id="mx2">-</b></td></tr></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">4</span> AI 주장 검증표</h2>
+    <p class="hint">AI의 주장: “예/아니오 질문 20번이면 100만 가지를 구분할 수 있어요.” 직접 계산해서 확인하세요.</p>
+    <div class="note">계산기: 2를 <input class="blank" type="number" id="pw" value="20" min="1" max="40" style="width:70px">번 곱하면 → <b id="pwv"></b></div>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>AI의 주장과 설명</th><th>우리 계산으로 확인 (2를 20번 곱하면?)</th><th>판단</th><th>판단 이유·조건</th></tr></thead>
+      <tbody><tr><td><textarea data-k="a1"></textarea></td><td><textarea data-k="a2"></textarea></td>
+      <td><label class="ck"><input type="radio" name="aj" data-k="a3" value="수용"> 수용</label><br><label class="ck"><input type="radio" name="aj" data-k="a3" value="일부 수용"> 일부 수용</label><br><label class="ck"><input type="radio" name="aj" data-k="a3" value="거절"> 거절</label></td>
+      <td><textarea data-k="a4" placeholder="AI가 빠뜨린 조건은?"></textarea></td></tr></tbody></table></div>
+  </section>
+
+  <section class="card exit">
+    <h2><span class="n">★</span> 출구 카드</h2>
+    <div class="line">좋은 스무고개 질문의 조건은 <input class="blank" data-k="exit1" style="width:min(380px,65vw)">이다.
+      왜냐하면 <input class="blank" data-k="exit2" style="width:min(420px,70vw)">.</div>
+  </section>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/animals.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function(){
+  const {$, $$, esc, get, set, num, avg, round} = AKN;
+  if (!AKN.boot(4, { records })) return;
+  const NS = [10, 20, 60, 100], ALG = ['알고리즘 1 순서대로', '알고리즘 2 양 끝 번갈아', '알고리즘 3 중간값'];
+  const ANS3 = { 10: 4, 20: 5, 60: 6, 100: 7 };
+
+  /* ---------- ① 효율성 ---------- */
+  $('#eff').innerHTML = `<thead><tr><th rowspan="2">최댓값</th>${NS.map(n => `<th colspan="2">${n}</th>`).join('')}</tr><tr>${NS.map(() => '<th>최소</th><th>최대</th>').join('')}</tr></thead><tbody>` +
+    ALG.map((a, i) => `<tr><td class="lab">알고리즘 ${i + 1}<br><small>${a.split(' ').slice(2).join(' ')}</small></td>${NS.map(n => `<td><input type="number" data-k="e${i}_${n}_min" style="width:64px;text-align:center"></td><td><input type="number" data-k="e${i}_${n}_max" style="width:64px;text-align:center"></td>`).join('')}</tr>`).join('') + `</tbody>`;
+  const ser = i => NS.map(n => num(get(`e${i}_${n}_max`, '')));
+  function lineCfg(data, title) {
+    return { type: 'line', data: { labels: NS.map(String), datasets: ALG.map((a, i) => ({ label: a.split(' ').slice(0, 2).join(' '), data: data[i], borderColor: AKN.PALETTE[i], backgroundColor: AKN.PALETTE[i], tension: .15, spanGaps: true, borderWidth: 3, pointRadius: 4, borderDash: i === 1 ? [8, 6] : [] })) },
+      options: { plugins: { title: { display: !!title, text: title } }, scales: { x: { title: { display: true, text: '최댓값' } }, y: { beginAtZero: true, title: { display: true, text: '최대 수행 횟수' } } } } };
+  }
+  function drawMine() { AKN.chart($('#mine'), lineCfg([0, 1, 2].map(ser))); }
+  document.addEventListener('akn:change', e => { if (/^e\d_/.test(e.detail.k) || e.detail.k === '*') drawMine(); });
+  $('#chk1').addEventListener('click', () => {
+    let ok = 0, tot = 0;
+    [0, 1, 2].forEach(i => NS.forEach(n => {
+      ['min', 'max'].forEach(t => {
+        const k = `e${i}_${n}_${t}`, v = num(get(k, '')); if (v == null) return; tot++;
+        const ans = t === 'min' ? 1 : (i < 2 ? n : ANS3[n]);
+        const el = document.querySelector(`[data-k="${k}"]`);
+        if (v === ans) { ok++; el.style.color = 'var(--green-ink)'; } else el.style.color = 'var(--red)';
+      });
+    }));
+    $('#r1').innerHTML = tot ? `<span class="${ok === tot ? 'ok' : 'bad'}">채운 ${tot}칸 중 ${ok}칸 맞음</span>` : '<span class="hint">먼저 칸을 채우세요</span>';
+  });
+  $('#loadCls').addEventListener('click', async () => {
+    const res = await AKN.api({ action: 'records', tab: '알고리즘비교', cls: AKN.user().cls });
+    if (!res.ok) { AKN.toast(res.error || '불러오지 못했어요'); return; }
+    const rows = res.rows || [];
+    if (!rows.length) { AKN.toast('아직 우리 반 제출 기록이 없어요'); return; }
+    const data = [0, 1, 2].map(i => NS.map(n => { const v = avg(rows.filter(r => String(r['알고리즘']) === String(i + 1) && String(r['최댓값']) === String(n)).map(r => num(r['최대']))); return v == null ? null : round(v, 1); }));
+    AKN.chart($('#cls'), lineCfg(data, `우리 반 ${new Set(rows.map(r => r['모둠'] + '-' + r['번호'])).size}명 평균`));
+  });
+  $('#loadReal').addEventListener('click', async () => {
+    const res = await AKN.api({ action: 'records', tab: '게임기록', cls: AKN.user().cls });
+    if (!res.ok) { $('#real').textContent = res.error || '불러오지 못했어요'; return; }
+    const rows = (res.rows || []).filter(r => r['범위'] === '1~30' && r['질문수'] !== '' && Number(r['질문수']) > 0 && Number(r['질문수']) <= 30);
+    const g = (f) => { const a = rows.filter(f).map(r => Number(r['질문수'])); return a.length ? `${round(avg(a), 1)}번 (${a.length}판, 최대 ${Math.max(...a)}번)` : '기록 없음'; };
+    $('#real').innerHTML = `1차시 순서대로: <b>${g(r => r['전략'] === '순서대로')}</b> · 아무 수나: <b>${g(r => r['전략'] === '아무 수나')}</b> · 우리 방법: <b>${g(r => r['전략'] === '우리 방법')}</b> · 3차시 챔피언전: <b>${g(r => r['전략'] === '챔피언전')}</b>`;
+  });
+
+  /* ---------- ② 카드 ---------- */
+  let deck = [], mode = '', lo = 0, hi = 19, flips = 0, opened = new Set();
+  function newDeck() {
+    const pool = Array.from({ length: 40 }, (_, i) => i + 1).filter(x => x !== 17).sort(() => Math.random() - .5).slice(0, 19);
+    pool.push(17); return pool;
+  }
+  function drawCards() {
+    $('#cards').innerHTML = deck.map((v, i) => {
+      const open = opened.has(i), out = mode === 'sort' && (i < lo || i > hi);
+      return `<button type="button" class="pc ${open ? 'open' : ''} ${open && v === 17 ? 'target' : ''} ${out ? 'out' : ''}" data-i="${i}"><small>${i + 1}</small>${open ? v : '?'}</button>`;
+    }).join('');
+  }
+  function start(m) {
+    mode = m; deck = newDeck(); if (m === 'sort') deck.sort((a, b) => a - b); else deck.sort(() => Math.random() - .5);
+    lo = 0; hi = 19; flips = 0; opened = new Set(); drawCards();
+    $('#cardMsg').textContent = m === 'sort' ? '번호 순서대로 놓인 카드예요. 가운데부터 뒤집어 보세요.' : '번호가 뒤섞인 카드예요. 가운데부터 뒤집어 보세요.';
+  }
+  $('#cards').addEventListener('click', e => {
+    const b = e.target.closest('.pc'); if (!b) return;
+    const i = +b.dataset.i; if (opened.has(i)) return;
+    opened.add(i); flips++; const v = deck[i];
+    let msg = `${flips}번째로 뒤집은 카드: ${v}. `;
+    if (v === 17) msg += `찾았다! ${flips}번 만에 찾았어요.`;
+    else if (mode === 'shuf') msg += `17보다 ${v < 17 ? '작아요' : '커요'}. 그런데 어느 쪽을 버려야 할까요? 뒤섞여 있으면 정할 수 없어요!`;
+    else { if (v < 17) { lo = Math.max(lo, i + 1); msg += '17보다 작으니 왼쪽을 모두 버려요.'; } else { hi = Math.min(hi, i - 1); msg += '17보다 크니 오른쪽을 모두 버려요.'; } msg += ` 남은 카드 ${Math.max(0, hi - lo + 1)}장`; }
+    $('#cardMsg').textContent = msg; drawCards();
+  });
+  $('#shuf').addEventListener('click', () => start('shuf'));
+  $('#sort').addEventListener('click', () => start('sort'));
+  start('shuf');
+
+  /* ---------- ③ 결정 트리 ---------- */
+  const AN = window.AKN_ANIMALS, F = AN.features, NAMES = AN.names;
+  const tv = (a, f) => AN.table[a][f];
+  let tree;
+  function loadTree() { try { tree = JSON.parse(get('tree', '') || 'null'); } catch (e) { tree = null; } if (!tree) tree = { c: NAMES.slice(), f: -1 }; }
+  function saveTree() { set('tree', JSON.stringify(tree)); }
+  function splitters(c) { return F.map((f, i) => { const y = c.filter(a => tv(a, i)).length; return { i, y, n: c.length - y }; }).filter(s => s.y > 0 && s.n > 0); }
+  function nodeHTML(nd, path) {
+    const kids = nd.f >= 0 && nd.y && nd.n;
+    const chips = nd.c.map(a => `<span class="animal-chip">${esc(a)}</span>`).join('');
+    if (nd.c.length === 1) return `<div class="tn"><div class="box leaf"><b>${esc(nd.c[0])}</b></div></div>`;
+    const sp = splitters(nd.c);
+    if (!sp.length) return `<div class="tn"><div class="box multi"><div>${chips}</div><small>특징이 같아요 → “○○입니까?”로 하나씩</small></div></div>`;
+    const sel = `<select data-path="${path}" aria-label="질문 고르기"><option value="-1">질문 고르기…</option>${sp.map(s => `<option value="${s.i}" ${s.i === nd.f ? 'selected' : ''}>${esc(F[s.i])} (예 ${s.y} / 아니오 ${s.n})</option>`).join('')}</select>`;
+    let h = `<div class="tn"><div class="box">${kids ? '' : `<div>${chips}</div>`}${sel}</div>`;
+    if (kids) h += `<div class="kids"><div class="kid"><span class="lbl y">예 ${nd.y.c.length}</span>${nodeHTML(nd.y, path + 'y')}</div><div class="kid"><span class="lbl n">아니오 ${nd.n.c.length}</span>${nodeHTML(nd.n, path + 'n')}</div></div>`;
+    return h + `</div>`;
+  }
+  function at(path) { let nd = tree; for (const ch of path) nd = nd[ch]; return nd; }
+  function depths() {
+    const d = {}; let complete = true;
+    (function walk(nd, k) {
+      if (nd.f >= 0 && nd.y) { walk(nd.y, k + 1); walk(nd.n, k + 1); return; }
+      if (nd.c.length > 1 && splitters(nd.c).length) complete = false;
+      const n = nd.c.length;
+      nd.c.forEach((a, i) => { d[a] = n === 1 ? k : (i < n - 1 ? k + i + 1 : k + n - 1); });
+    })(tree, 0);
+    return { d, complete };
+  }
+  function drawTree() {
+    $('#tree').innerHTML = nodeHTML(tree, '');
+    const { d, complete } = depths();
+    $('#cnt').innerHTML = `<thead><tr>${[0, 1, 2, 3].map(() => '<th>동물</th><th>질문 수</th>').join('')}</tr></thead><tbody>` +
+      [0, 1, 2, 3].map(r => `<tr>${[0, 1, 2, 3].map(c => { const a = NAMES[r * 4 + c]; return `<td class="lab">${a}</td><td class="c">${d[a]}</td>`; }).join('')}</tr>`).join('') + `</tbody>`;
+    const vals = NAMES.map(a => d[a]); const sum = vals.reduce((s, x) => s + x, 0); const mx = Math.max(...vals);
+    const av = round(sum / 16, 2);
+    $('#sum').textContent = sum; $('#avg').textContent = av; $('#avg2').textContent = av + '번' + (complete ? '' : ' (미완성)');
+    $('#mx').textContent = NAMES.filter(a => d[a] === mx).join(', ') + ` (${mx}번)`; $('#mx2').textContent = mx + '번';
+    const f1 = tree.f >= 0 && tree.y;
+    $('#tq1').textContent = f1 ? F[tree.f] : '-'; $('#ty').textContent = f1 ? tree.y.c.length : '-'; $('#tn').textContent = f1 ? tree.n.c.length : '-';
+    $('#tq2y').textContent = f1 && tree.y.f >= 0 && tree.y.y ? F[tree.y.f] : '-';
+    $('#tq2n').textContent = f1 && tree.n.f >= 0 && tree.n.y ? F[tree.n.f] : '-';
+    window.__treeStat = { sum, av, mx, complete, first: f1 ? F[tree.f] : '', y: f1 ? tree.y.c.length : '', n: f1 ? tree.n.c.length : '' };
+  }
+  $('#tree').addEventListener('change', e => {
+    const s = e.target.closest('select[data-path]'); if (!s) return;
+    const nd = at(s.dataset.path); const f = +s.value;
+    if (f < 0) { nd.f = -1; delete nd.y; delete nd.n; }
+    else { nd.f = f; nd.y = { c: nd.c.filter(a => tv(a, f)), f: -1 }; nd.n = { c: nd.c.filter(a => !tv(a, f)), f: -1 }; }
+    saveTree(); drawTree();
+  });
+  $('#treeReset').addEventListener('click', () => { if (confirm('트리를 처음부터 다시 만들까요?')) { tree = { c: NAMES.slice(), f: -1 }; saveTree(); drawTree(); } });
+  document.addEventListener('akn:restored', () => { loadTree(); drawTree(); });
+
+  /* ---------- ④ 계산기 ---------- */
+  const pw = () => { const n = Math.max(1, Math.min(40, parseInt($('#pw').value, 10) || 1)); $('#pwv').textContent = (2 ** n).toLocaleString('ko-KR') + '가지'; };
+  $('#pw').addEventListener('input', pw); pw();
+
+  function records() {
+    const alg = [];
+    [0, 1, 2].forEach(i => NS.forEach(n => {
+      const mn = get(`e${i}_${n}_min`, ''), mx = get(`e${i}_${n}_max`, '');
+      if (mn === '' && mx === '') return;
+      alg.push({ '알고리즘': i + 1, '최댓값': n, '최소': mn === '' ? '' : Number(mn), '최대': mx === '' ? '' : Number(mx) });
+    }));
+    const t = window.__treeStat || {};
+    const tr = t.first ? [{ '첫질문': t.first, '예수': t.y, '아니오수': t.n, '합계': t.sum, '평균': t.av, '최대': t.mx }] : [];
+    return { '알고리즘비교': alg, '결정트리': tr };
+  }
+  AKN.ready();
+})();
+</script>
+</body>
+</html>

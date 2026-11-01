@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>활동지 2 · 스무고개 질문 만들기와 특징 표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <div class="ws-head"><span class="tag">2차시</span><span class="tag">문제 구조화</span><span class="tag">모둠</span>
+    <h1>[활동지 2] 스무고개 질문 만들기와 특징 표</h1>
+    <p>찾는 대상을 컴퓨터가 다룰 수 있게 바꿉니다. 모둠원 한 명이 대표로 쓰고 제출하면, 다른 친구는 아래 <b>모둠 친구 제출 불러오기</b>로 같은 내용을 받을 수 있어요.</p></div>
+
+  <section class="card">
+    <h2><span class="n">1</span> 좋은 질문과 나쁜 질문 구별하기</h2>
+    <p class="hint">동물 카드 16장을 보고 스무고개 질문을 만든 뒤, 누가 대답해도 같은 답이 나오는 질문과 답이 갈리는 질문으로 나눕니다.</p>
+    <div id="q1"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span> 특징 표 만들기</h2>
+    <p class="hint">①에서 고른 좋은 질문 5~8개를 맨 윗줄에 쓰고, 칸을 눌러 <b>예=1</b>, 한 번 더 누르면 <b>아니오=0</b>으로 채우세요. (세 번 누르면 비워집니다) 답이 갈리는 동물은 모둠이 약속을 정하고 아래에 적습니다.</p>
+    <div class="tbl-wrap"><table class="t" id="ft"></table></div>
+    <div class="field" style="margin-top:10px"><label>우리 모둠의 약속</label><textarea data-k="promise" placeholder="예) 판다는 대나무를 먹으므로 ‘풀을 먹는가’ = 예로 약속"></textarea></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span> 입력·처리·출력 정하기</h2>
+    <div class="row">
+      <div class="field"><label>입력 (무엇을 받나?)</label><textarea data-k="ipo_in"></textarea></div>
+      <div class="field"><label>처리 (무엇을 하나?)</label><textarea data-k="ipo_proc"></textarea></div>
+      <div class="field"><label>출력 (무엇을 내나?)</label><textarea data-k="ipo_out"></textarea></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">4</span> 모둠 주제·조사 계획</h2>
+    <div class="line"><b>주제 :</b>
+      <label class="ck"><input type="radio" name="topic" data-k="topic" value="동물 확장"> 동물 확장</label>
+      <label class="ck"><input type="radio" name="topic" data-k="topic" value="경남 시·군"> 경남 시·군</label>
+      <label class="ck"><input type="radio" name="topic" data-k="topic" value="직업·진로"> 직업·진로</label>
+      <label class="ck"><input type="radio" name="topic" data-k="topic" value="과학 개념"> 과학 개념</label>
+      <label class="ck"><input type="radio" name="topic" data-k="topic" value="기타"> 기타(<input class="blank" data-k="topic_etc" style="width:140px">)</label></div>
+    <div class="line">후보 (8~16개 권장, <input class="blank" type="number" data-k="cand_n" style="width:70px">개) :</div>
+    <textarea data-k="cands" placeholder="후보를 쉼표로 적어 주세요. 예) 창원, 진주, 통영, 사천, 김해, 밀양, 거제, 양산, …"></textarea>
+    <h3>특징 데이터 조사 계획</h3>
+    <div id="plan"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">5</span> AI 사실 검증</h2>
+    <p class="hint">AI에게 특징 사실을 묻고, 교과서·백과·공공 자료로 다시 확인합니다.</p>
+    <div id="ai"></div>
+  </section>
+
+  <section class="card exit">
+    <h2><span class="n">★</span> 출구 카드</h2>
+    <div class="line">좋은 스무고개 질문은 <input class="blank" data-k="exit" style="width:min(380px,65vw)"> 질문이다.</div>
+  </section>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/animals.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function(){
+  const {$, $$, esc, get, set} = AKN;
+  if (!AKN.boot(2, {})) return;
+
+  AKN.dynTable('#q1', { key: 'gq', min: 4, max: 12, addLabel: '질문 추가',
+    cols: [{ h: '좋은 질문 (모두 같은 답)', w: 200 }, { h: '나쁜 질문 (답이 갈림)', w: 200 }, { h: '나쁜 이유', w: 200 }],
+    example: ['날 수 있는가?', '크니? 귀엽니?', '기준이 사람마다 다름'] });
+
+  const A = window.AKN_ANIMALS.names;
+  function drawFT() {
+    let h = `<thead><tr><th>동물</th>${Array.from({length: 8}, (_, c) => `<th><input type="text" data-k="fh${c}" placeholder="질문${c + 1}" style="min-width:110px;font-weight:700;text-align:center;background:#fff"></th>`).join('')}</tr></thead><tbody>`;
+    A.forEach((a, r) => {
+      h += `<tr><td class="lab">${esc(a)}</td>` + Array.from({length: 8}, (_, c) => `<td class="c"><button type="button" class="cell01" data-r="${r}" data-c="${c}" aria-label="${esc(a)} 질문${c + 1}"></button></td>`).join('') + `</tr>`;
+    });
+    h += `<tr><td class="lab">예의 수</td>${Array.from({length: 8}, (_, c) => `<td class="c"><b id="yes${c}">0</b>/16</td>`).join('')}</tr></tbody>`;
+    $('#ft').innerHTML = h;
+  }
+  function paint() {
+    $$('.cell01').forEach(b => {
+      const v = get(`ft.${b.dataset.r}.${b.dataset.c}`, '');
+      b.textContent = v === '' ? '' : v; b.className = 'cell01' + (v === '1' ? ' on' : v === '0' ? ' off' : '');
+    });
+    for (let c = 0; c < 8; c++) { let n = 0; for (let r = 0; r < A.length; r++) if (get(`ft.${r}.${c}`, '') === '1') n++; $('#yes' + c).textContent = n; }
+  }
+  drawFT();
+  $('#ft').addEventListener('click', e => {
+    const b = e.target.closest('.cell01'); if (!b || AKN.viewMode) return;
+    const k = `ft.${b.dataset.r}.${b.dataset.c}`; const v = get(k, '');
+    set(k, v === '' ? '1' : v === '1' ? '0' : ''); paint();
+  });
+  document.addEventListener('akn:restored', paint);
+
+  AKN.dynTable('#plan', { key: 'plan', min: 4, max: 12, addLabel: '특징 추가',
+    cols: [{ h: '특징 질문', w: 180 }, { h: '확인할 자료 (교과서, 웹 검색, 공공 자료, 설문 등)', w: 200 }, { h: '담당', w: 80 }, { h: '애매한 후보와 우리 약속', w: 200 }],
+    example: ['바다와 맞닿아 있는가?', '지도', 'OOO', '하동: 지도로 확인 → 예'] });
+
+  AKN.dynTable('#ai', { key: 'ai', min: 3, max: 10, addLabel: '검증 추가',
+    cols: [{ h: 'AI에게 물은 질문', w: 170 }, { h: 'AI의 답', type: 'area', w: 180 }, { h: '자료로 확인한 결과 (출처)', type: 'area', w: 180 }, { h: '판단', type: 'select', opts: ['수용', '일부 수용', '거절'], w: 100 }, { h: '이유', type: 'area', w: 160 }] });
+
+  AKN.ready();
+})();
+</script>
+</body>
+</html>

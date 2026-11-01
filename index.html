@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>아키네이터의 비밀 · 웹 활동지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <h1>아키네이터의 비밀</h1>
+    <p>램프 요정 지니는 어떻게 내가 생각한 것을 스무고개로 맞힐까? · 8차시 웹 활동지</p>
+  </section>
+
+  <section class="card" id="login">
+    <h2><span class="n">★</span> 나는 누구인가요?</h2>
+    <p class="hint">이름은 쓰지 않아요. 학급·모둠·번호만 고르면 됩니다. 이 기기에서 쓴 내용은 자동으로 저장돼요.</p>
+    <div class="row" style="max-width:560px">
+      <div class="field"><label for="cls">학급</label><select id="cls"></select></div>
+      <div class="field"><label for="grp">모둠</label><select id="grp"></select></div>
+      <div class="field"><label for="num">모둠 안 번호</label><select id="num"></select></div>
+    </div>
+    <div class="btns"><button class="btn" id="go" type="button">시작하기</button></div>
+  </section>
+
+  <section id="list" style="display:none">
+    <div class="row" style="align-items:center;margin-bottom:10px">
+      <h2 style="margin:0;color:var(--navy);flex:1 1 auto">활동지 고르기</h2>
+      <span class="badge" id="me"></span>
+    </div>
+    <div class="grid" id="cards"></div>
+    <p class="hint" style="margin-top:18px">● 제출함 &nbsp; ◐ 작성 중 &nbsp; ○ 아직 시작 안 함 &nbsp;·&nbsp; 수업이 끝나면 꼭 <b>제출하기</b>를 누르세요. 다른 기기에서 이어 쓸 때는 활동지 아래 <b>내 제출 불러오기</b>를 누르면 돼요.</p>
+  </section>
+
+  <p style="text-align:center;margin-top:30px"><a href="teacher.html">선생님 화면</a></p>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function(){
+  const {C, WS, $, esc, user, setUser, who, meta, hhmm} = AKN;
+  AKN.boot(0);
+  const q = new URLSearchParams(location.search);
+  const fill = (el, arr, pre) => { el.innerHTML = arr.map(v => `<option value="${v}">${v}${pre}</option>`).join(''); };
+  fill($('#cls'), C.CLASSES || ['1'], '반');
+  fill($('#grp'), Array.from({length: C.GROUPS || 8}, (_, i) => String(i + 1)), '모둠');
+  fill($('#num'), Array.from({length: C.MAX_NUMBER || 6}, (_, i) => String(i + 1)), '번');
+  const u = user();
+  if (u) { $('#cls').value = u.cls; $('#grp').value = u.grp; $('#num').value = u.num; }
+
+  function showList() {
+    const u = user(); const m = meta();
+    $('#me').textContent = who(u);
+    $('#cards').innerHTML = WS.map(w => {
+      const st = m.submitted[w.id] ? `<span class="badge g">● 제출함</span>` : (m.saved[w.id] ? `<span class="badge a">◐ 작성 중</span>` : `<span class="badge">○</span>`);
+      return `<a class="wscard" href="ws${w.id}.html"><span class="st">${st}</span><div class="no">활동지 ${w.id} · ${w.lesson}</div><h3>${esc(w.title)}</h3><div class="meta">${esc(w.stage)}${w.group ? ' · 모둠 활동' : ''}</div></a>`;
+    }).join('');
+    $('#list').style.display = '';
+  }
+  $('#go').addEventListener('click', () => {
+    const nu = {cls: $('#cls').value, grp: $('#grp').value, num: $('#num').value};
+    const old = user();
+    if (old && (old.cls !== nu.cls || old.grp !== nu.grp || old.num !== nu.num) &&
+        !confirm(`${who(old)}에서 ${who(nu)}(으)로 바꿀까요?\n(바꾸기 전 내용은 이 기기에 그대로 남아 있어요)`)) return;
+    setUser(nu);
+    const next = q.get('next');
+    if (next && /^ws[1-8]\.html$/.test(next)) location.href = next; else { showList(); AKN.toast(who(nu) + '(으)로 시작합니다'); }
+  });
+  if (u && !q.get('change')) showList();
+})();
+</script>
+</body>
+</html>

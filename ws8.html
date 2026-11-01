@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>활동지 8 · 우리 아키네이터를 세상으로</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <div class="ws-head"><span class="tag">8차시</span><span class="tag">공유·확장</span><span class="tag">모둠</span>
+    <h1>[활동지 8] 우리 아키네이터를 세상으로</h1>
+    <p>탐색의 비밀은 어디에 더 쓰일까? 모둠 아키네이터를 시연·발표하고, 생활 속 탐색 원리와 AI 윤리 문제를 토의합니다.</p></div>
+
+  <section class="card">
+    <h2><span class="n">1</span> 시연·발표 준비</h2>
+    <p class="hint">다섯 칸을 채우면 발표 대본이 됩니다. ‘3. 증거’ 줄에는 활동지 6의 평균 질문 수와 활동지 7의 정답률을 숫자로 적습니다.</p>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th style="width:80px">순서</th><th style="width:240px">무엇을 말하나</th><th>우리 모둠 내용</th><th style="width:110px">말할 사람</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">1. 문제</td><td>어떤 불편을 해결하려고 만들었나?</td><td><textarea data-k="p1" rows="2"></textarea></td><td><input type="text" data-k="s1"></td></tr>
+        <tr><td class="lab">2. 설계</td><td>후보 몇 개, 특징 질문 몇 개? 첫 질문을 고른 이유는?</td><td><textarea data-k="p2" rows="2"></textarea></td><td><input type="text" data-k="s2"></td></tr>
+        <tr><td class="lab">3. 증거</td><td>평균 질문 수와 정답률<br><button type="button" class="btn sm ghost no-view" id="pull">활동지 6·7에서 가져오기</button></td>
+          <td>평균 질문 수 <input class="blank" data-k="ev_avg" style="width:70px">번, 정답률 <input class="blank" data-k="ev_r1" style="width:60px">% → <input class="blank" data-k="ev_r2" style="width:60px">% (개선 전 → 후)<textarea data-k="p3" rows="1" placeholder="덧붙일 말"></textarea></td><td><input type="text" data-k="s3"></td></tr>
+        <tr><td class="lab">4. 한계</td><td>아직 구별하지 못하는 후보, 틀리기 쉬운 질문은?</td><td><textarea data-k="p4" rows="2"></textarea></td><td><input type="text" data-k="s4"></td></tr>
+        <tr><td class="lab">5. 확장</td><td>다음에 더 해 보고 싶은 것은?</td><td><textarea data-k="p5" rows="2"></textarea></td><td><input type="text" data-k="s5"></td></tr>
+      </tbody></table></div>
+    <div class="line">시연 방법 : 듣는 모둠 친구 1명이 나와 직접 해 본다. → 몇 번 만에 맞혔나? <input class="blank" type="number" data-k="demo" style="width:70px">번</div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span> 동료 평가</h2>
+    <p class="hint">다른 모둠 발표를 듣고 적습니다. 제출하면 ‘잘한 점’과 ‘질문·제안’이 그 모둠에게 댓글처럼 전달돼요.</p>
+    <div id="peer"></div>
+    <div class="line">가장 좋은 첫 질문을 만든 모둠 : <input class="blank" data-k="bestg" style="width:90px"> 이유 : <input class="blank" data-k="bestwhy" style="width:min(380px,70vw)"></div>
+    <div class="btns no-view"><button type="button" class="btn sm" id="fb">우리 모둠이 받은 피드백 보기</button></div>
+    <div id="fbOut"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span> 확장 토의 : 생활 속 탐색 원리 찾기</h2>
+    <p class="hint">우리가 배운 두 가지 방법 중 무엇을 쓰는지 찾아봅니다.<br>
+      ♣ <b>정렬+절반 버리기</b>(업다운, 이진 탐색) : 후보가 순서대로 놓여 있어 가운데를 보고 한쪽을 버린다.<br>
+      ♣ <b>좋은 질문으로 나누기</b>(아키네이터, 결정 트리) : 예/아니오 질문으로 후보를 줄인다.</p>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>생활 사례</th><th>무엇을 찾나?</th><th>무엇으로 후보를 줄이나?</th><th style="width:170px">어느 방법?</th></tr></thead><tbody id="life"></tbody></table></div>
+    <div class="field" style="margin-top:8px"><label>탐색 전략을 쓸 수 없거나 조심해야 하는 경우는?</label><textarea data-k="careful"></textarea></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">4</span> 윤리 토의</h2>
+    <h3>토의 1. 데이터 오염</h3>
+    <p class="hint">우리 AI 모델은 친구들의 대답으로 학습합니다. 누군가 장난으로 “고래는 날 수 있다”는 대답을 30번 넣었다면?</p>
+    <div class="field"><label>1. AI는 어떻게 될까요?</label><textarea data-k="e1"></textarea></div>
+    <div class="field"><label>2. 막을 방법은? (1차시에 이상치를 찾아 처리한 경험을 떠올려 보세요.)</label><textarea data-k="e2"></textarea></div>
+    <div class="field"><label>3. 실제 서비스에서 비슷한 일이 생길 수 있는 곳은?</label><textarea data-k="e3"></textarea></div>
+    <h3>토의 2. 질문 속 편향</h3>
+    <p class="hint">아래 질문에 담길 수 있는 고정관념이나 문제를 찾고, 모두가 같은 답을 할 수 있는 공정한 질문으로 바꿔 봅니다.</p>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>질문</th><th>문제점</th><th>바꾼 질문</th></tr></thead><tbody id="bias"></tbody></table></div>
+    <div class="field" style="margin-top:8px"><label>우리 모둠 질문 중 고칠 것</label><input type="text" data-k="ourfix"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">5</span> 프로젝트 성찰</h2>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th style="width:170px">단계</th><th>배운 점</th><th>아쉬운 점</th></tr></thead><tbody id="refl"></tbody></table></div>
+    <div class="field" style="margin-top:8px"><label>AI를 쓴 부분과 내가 직접 판단한 부분</label><textarea data-k="aiuse"></textarea></div>
+  </section>
+
+  <section class="card exit">
+    <h2><span class="n">★</span> 출구 카드</h2>
+    <div class="line">아키네이터의 비밀을 한 문장으로 말하면 <input class="blank" data-k="exit" style="width:min(440px,75vw)">이다.</div>
+  </section>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function(){
+  const {$, esc, get, set, C} = AKN;
+  if (!AKN.boot(8, { records })) return;
+  const me = AKN.user() || {};
+  const groups = Array.from({ length: C.GROUPS || 8 }, (_, i) => String(i + 1)).filter(g => AKN.viewMode || g !== String(me.grp));
+  AKN.dynTable('#peer', { key: 'pr', min: 5, max: 12, addLabel: '모둠 추가',
+    cols: [{ h: '모둠', type: 'select', opts: groups, w: 70 }, { h: '주제', w: 110 }, { h: '숫자 근거가 있었나?', type: 'check', opts: ['평균 질문 수', '정답률'] }, { h: '잘한 점', type: 'area', w: 170 }, { h: '질문·제안', type: 'area', w: 170 }] });
+
+  const LIFE = ['사전에서 단어 찾기', '도서관 청구 기호', '분리배출 안내', '병원 문진표', ''];
+  $('#life').innerHTML = LIFE.map((l, i) => `<tr><td class="lab">${l ? esc(l) : `우리가 찾은 사례: <input type="text" data-k="l${i}n" style="min-width:120px">`}</td><td><input type="text" data-k="l${i}a"></td><td><input type="text" data-k="l${i}b"></td>
+    <td class="c"><label class="ck"><input type="radio" name="lm${i}" data-k="l${i}m" value="정렬"> 정렬</label><label class="ck"><input type="radio" name="lm${i}" data-k="l${i}m" value="질문"> 질문</label></td></tr>`).join('');
+  const BIAS = ['(역사 인물 맞히기) “여자인가요?”', '(인물 맞히기) “잘생겼나요?”', '(지역 맞히기) “살기 좋은 곳인가요?”'];
+  $('#bias').innerHTML = BIAS.map((b, i) => `<tr><td class="lab">${esc(b)}</td><td><textarea data-k="b${i}a" rows="2"></textarea></td><td><textarea data-k="b${i}b" rows="2"></textarea></td></tr>`).join('');
+  const ST = ['문제 발견 (1차시)', '문제 구조화 (2차시)', '컴퓨팅 설계 (3~4차시)', '구현 (5~6차시)', '테스트·개선 (7차시)', '공유·확장 (8차시)'];
+  $('#refl').innerHTML = ST.map((s, i) => `<tr><td class="lab">${s}</td><td><textarea data-k="r${i}a" rows="2"></textarea></td><td><textarea data-k="r${i}b" rows="2"></textarea></td></tr>`).join('');
+
+  $('#pull').addEventListener('click', () => {
+    const a = AKN.peek(6, 'avgA'), r1 = AKN.peek(7, 'rate1'), r2 = AKN.peek(7, 'rate2');
+    let n = 0;
+    if (a !== undefined && a !== '') { set('ev_avg', a); n++; }
+    if (r1 !== undefined && r1 !== '') { set('ev_r1', r1); n++; }
+    if (r2 !== undefined && r2 !== '') { set('ev_r2', r2); n++; }
+    AKN.toast(n ? '활동지 6·7의 숫자를 가져왔어요' : '이 기기에 활동지 6·7 기록이 없어요. 직접 적거나 “모둠 친구 제출 불러오기”를 먼저 해 보세요.');
+  });
+
+  $('#fb').addEventListener('click', async () => {
+    const res = await AKN.api({ action: 'feedback', cls: me.cls, grp: me.grp });
+    if (!res.ok) { $('#fbOut').textContent = res.error || '불러오지 못했어요'; return; }
+    const rows = (res.rows || []).filter(r => String(r['잘한점'] || '').trim() || String(r['질문제안'] || '').trim());
+    $('#fbOut').innerHTML = rows.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>보낸 모둠</th><th>숫자 근거</th><th>잘한 점</th><th>질문·제안</th></tr></thead><tbody>${rows.map(r => `<tr><td class="c">${esc(r['모둠'])}모둠</td><td>${esc(r['근거'])}</td><td>${esc(r['잘한점'])}</td><td>${esc(r['질문제안'])}</td></tr>`).join('')}</tbody></table></div>`
+      : '<p class="hint">아직 받은 피드백이 없어요.</p>';
+  });
+
+  function records() {
+    const n = parseInt(get('#pr', 5), 10) || 5; const out = [];
+    for (let i = 0; i < n; i++) {
+      const g = get(`pr.${i}.0`, ''); if (!g) continue;
+      const ev = ['평균 질문 수', '정답률'].filter(o => get(`pr.${i}.2.${o}`, false)).join(', ');
+      out.push({ '대상모둠': Number(g), '주제': get(`pr.${i}.1`, ''), '근거': ev, '잘한점': get(`pr.${i}.3`, ''), '질문제안': get(`pr.${i}.4`, '') });
+    }
+    return { '동료평가': out };
+  }
+  AKN.ready();
+})();
+</script>
+</body>
+</html>

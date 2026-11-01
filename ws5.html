@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>활동지 5 · 컴퓨터가 내 수를 맞히게 하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main class="wrap">
+  <div class="ws-head"><span class="tag">5차시</span><span class="tag">구현</span>
+    <h1>[활동지 5] 컴퓨터가 내 수를 맞히게 하기</h1>
+    <p>3차시 설계서(의사코드)를 엔트리 블록으로 옮겨 ‘컴퓨터가 맞히는 업다운’을 만들고 테스트합니다.</p>
+    <div class="btns no-print"><a class="btn sm" href="https://playentry.org" target="_blank" rel="noopener">엔트리 열기 ↗</a><a class="btn sm ghost" href="ws3.html">활동지 3 의사코드 다시 보기</a></div></div>
+
+  <section class="card">
+    <h2><span class="n">1</span> 설계서 → 블록 대응표</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th style="width:50px">번호</th><th>3차시 의사코드</th><th style="min-width:200px">쓸 엔트리 블록</th><th style="min-width:110px">블록 꾸러미</th></tr></thead>
+      <tbody id="map"></tbody></table></div>
+    <div class="line">설계서에는 있는데 블록으로 만들기 어려웠던 줄: <input class="blank" data-k="hard" style="width:160px"> → 어떻게 해결했나요? <input class="blank" data-k="hard_how" style="width:min(360px,70vw)"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span> 실행하고 테스트하기</h2>
+    <p class="hint">실행하기 전에 컴퓨터가 부를 수를 먼저 <b>예측</b>하고, 실행한 뒤 <b>실제</b>로 부른 수를 적습니다. ‘같은가?’는 자동으로 표시돼요.</p>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th style="width:90px">비밀 수</th><th>예측: 컴퓨터가 부를 수의 순서</th><th style="width:70px">예측<br>횟수</th><th>실제: 컴퓨터가 부른 수의 순서</th><th style="width:70px">실제<br>횟수</th><th style="width:70px">같은가?</th></tr></thead>
+      <tbody id="test"></tbody></table></div>
+    <div class="field"><label>예측과 다르게 나온 곳과 원인</label><textarea data-k="diff"></textarea></div>
+    <div class="field"><label>고친 블록</label><textarea data-k="fixed"></textarea></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span> 예외 처리: 사용자가 잘못 대답하면?</h2>
+    <p class="hint">비밀 수는 <b>10</b>인데, 사용자가 첫 질문 15에서 실수로 ‘업’이라고 대답했어요. 그다음부터는 계속 ‘다운’이라고 답합니다. 최소와 최대가 어떻게 바뀌는지 따라가 보세요.</p>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>부른 수 (가운데)</th><th>대답</th><th>바뀐 최소 수</th><th>바뀐 최대 수</th></tr></thead>
+      <tbody id="ex"></tbody></table></div>
+    <div class="btns no-view"><button type="button" class="btn sm ghost" id="chk3">따라가기 확인</button><span id="r3"></span></div>
+    <div class="field"><label>1. 마지막 줄에서 최소와 최대는 어떻게 되었나요?</label><input type="text" data-k="q1"></div>
+    <div class="field"><label>2. 이때 프로그램이 어떻게 해야 할까요?</label><input type="text" data-k="q2"></div>
+    <div class="line"><b>3. 우리 모둠이 넣은 검사 블록 :</b> 만일 &lt;<input class="blank" data-k="q3a" style="width:160px">&gt; 이라면 → “<input class="blank" data-k="q3b" style="width:200px">” 말하기 → <input class="blank" data-k="q3c" style="width:160px"></div>
+    <div class="line"><b>4. 이 검사 블록을 반복 안의 어디에 넣었나요?</b><br>
+      <label class="ck"><input type="radio" name="pos" data-k="q4" value="가운데를 구하기 전"> 가운데를 구하기 전</label>
+      <label class="ck"><input type="radio" name="pos" data-k="q4" value="대답을 들은 뒤"> 대답을 들은 뒤</label>
+      <label class="ck"><input type="radio" name="pos" data-k="q4" value="기타"> 기타(<input class="blank" data-k="q4etc" style="width:160px">)</label></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">4</span> 함수로 묶기</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>함수 이름</th><th>함수 안에 넣은 블록</th><th>함수를 부르는 곳</th></tr></thead>
+      <tbody><tr><td><input type="text" data-k="fn_name" placeholder="가운데 수 구하기"></td><td><textarea data-k="fn_body"></textarea></td><td><textarea data-k="fn_call"></textarea></td></tr></tbody></table></div>
+    <div class="field"><label>함수로 묶으니 좋아진 점</label><textarea data-k="fn_good"></textarea></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">5</span> +1·−1을 빼 보는 실험</h2>
+    <p class="hint">엔트리에서 ‘업이면 최소 ← 가운데 + 1’의 <b>+1</b>을 지우고 비밀 수 30으로 실행해 봅니다.</p>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th style="width:80px">비밀 수</th><th>컴퓨터가 부른 수의 순서</th><th>무슨 일이 생겼나?</th></tr></thead>
+      <tbody><tr><td class="c lab">30</td><td><input type="text" data-k="x_seq"></td><td><textarea data-k="x_what" rows="1"></textarea></td></tr></tbody></table></div>
+    <div class="line"><b>3차시 ‘사람 컴퓨터’에서 본 장면과 같았나요?</b>
+      <label class="ck"><input type="radio" name="same" data-k="x_same" value="같다"> 같다</label>
+      <label class="ck"><input type="radio" name="same" data-k="x_same" value="다르다"> 다르다</label> → 다른 점: <input class="blank" data-k="x_diff" style="width:min(300px,60vw)"></div>
+  </section>
+
+  <section class="card exit">
+    <h2><span class="n">★</span> 출구 카드</h2>
+    <div class="line">· +1과 −1이 없으면 프로그램에 <input class="blank" data-k="exit1" style="width:min(300px,60vw)"> 문제가 생긴다.</div>
+    <div class="line">· 반복이 끝나는 조건은 <input class="blank" data-k="exit2" style="width:min(300px,60vw)"> 이다.</div>
+  </section>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function(){
+  const {$, esc, get, set, parseSeq} = AKN;
+  if (!AKN.boot(5, {})) return;
+  const CODE = ['최소 ← 1, 최대 ← 30, 횟수 ← 0', '최소 ≤ 최대인 동안 반복한다', '　가운데 ← (최소+최대)÷2, 소수점 이하 버림', '　횟수 ← 횟수+1', '　가운데 수를 묻고 대답을 듣는다', '　만약 대답이 ‘업’이면 최소 ← 가운데+1', '　만약 대답이 ‘다운’이면 최대 ← 가운데−1', '　만약 대답이 ‘정답’이면 횟수를 말하고 끝낸다'];
+  const PK = ['시작', '흐름', '생김새', '판단', '계산', '자료', '함수', '기타'];
+  $('#map').innerHTML = CODE.map((c, i) => `<tr><td class="c lab">${i + 1}</td><td>${esc(c)}</td><td><input type="text" data-k="m${i}" placeholder="${i === 0 ? '예) (최소)를 (1)로 정하기' : ''}"></td><td><select data-k="mp${i}"><option value=""></option>${PK.map(p => `<option>${p}</option>`).join('')}</select></td></tr>`).join('');
+
+  const T = [['1', 1], ['30', 30], ['22', 22], ['', null]];
+  $('#test').innerHTML = T.map((t, i) => `<tr><td class="c lab">${t[1] ? t[0] : `우리가 고른 수<br><input type="number" data-k="t3n" min="1" max="30" style="width:70px;text-align:center">`}</td>
+    <td><input type="text" data-k="t${i}p"></td><td><input type="number" data-k="t${i}pc" style="text-align:center"></td>
+    <td><input type="text" data-k="t${i}a"></td><td><input type="number" data-k="t${i}ac" style="text-align:center"></td>
+    <td class="c"><b id="same${i}">-</b></td></tr>`).join('');
+  function same() {
+    T.forEach((t, i) => {
+      const p = parseSeq(get(`t${i}p`, '')), a = parseSeq(get(`t${i}a`, ''));
+      const el = $('#same' + i);
+      if (!p.length || !a.length) { el.textContent = '-'; el.className = ''; return; }
+      const ok = p.join(',') === a.join(',');
+      el.textContent = ok ? '○' : '×'; el.className = ok ? 'ok' : 'bad';
+    });
+  }
+  document.addEventListener('akn:change', e => {
+    const m = /^t(\d)([pa])$/.exec(e.detail.k);
+    if (m) { const n = parseSeq(get(e.detail.k)).length; set(`t${m[1]}${m[2]}c`, n || ''); }
+    same();
+  });
+
+  const EX = [[15, '업 (실수)', 16, 30], [23, '다운', 16, 22], [19, '다운', 16, 18], [17, '다운', 16, 16], [16, '다운', 16, 15]];
+  $('#ex').innerHTML = EX.map((r, i) => `<tr>${i === 0 ? `<td class="c lab">15</td>` : `<td><input type="number" data-k="x${i}m" style="text-align:center"></td>`}
+    <td class="c">${r[1]}</td>${i === 0 ? `<td class="c lab">16</td>` : `<td><input type="number" data-k="x${i}lo" style="text-align:center"></td>`}<td><input type="number" data-k="x${i}hi" style="text-align:center"></td></tr>`).join('');
+  $('#chk3').addEventListener('click', () => {
+    let ok = 0, tot = 0;
+    EX.forEach((r, i) => {
+      const cells = i === 0 ? [['x0hi', r[3]]] : [[`x${i}m`, r[0]], [`x${i}lo`, r[2]], [`x${i}hi`, r[3]]];
+      cells.forEach(([k, ans]) => { tot++; const el = document.querySelector(`[data-k="${k}"]`); const v = parseInt(get(k, ''), 10); if (v === ans) { ok++; el.style.color = 'var(--green-ink)'; } else el.style.color = 'var(--red)'; });
+    });
+    $('#r3').innerHTML = `<span class="${ok === tot ? 'ok' : 'bad'}">${tot}칸 중 ${ok}칸 맞음</span>`;
+  });
+  AKN.ready();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>아키네이터의 비밀 · 선생님 화면</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  .ans h3{color:var(--navy);margin-top:22px} .ans li{margin:3px 0} .ans img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:8px 0}
+  .ans table.t{min-width:0}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="ws-head"><span class="tag">선생님</span><h1>선생님 화면</h1><p>반 전체 제출 현황, 공유 시트 데이터 그래프, 교사용 예시 답, 엑셀 내려받기</p></div>
+
+  <section class="card" id="login">
+    <h2><span class="n">🔒</span> 들어가기</h2>
+    <div class="row" style="max-width:560px;align-items:flex-end">
+      <div class="field"><label for="key">교사 비밀번호</label><input type="password" id="key" autocomplete="current-password"></div>
+      <div class="field"><label for="cls">학급</label><select id="cls"></select></div>
+      <div><button class="btn" id="go" type="button">불러오기</button></div>
+    </div>
+    <p class="hint" id="loginMsg"></p>
+  </section>
+
+  <section id="main" style="display:none">
+    <div class="tabs" id="tabs"></div>
+    <div id="pane"></div>
+  </section>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function(){
+  const {$, $$, esc, C, WS, TABS, avg, round, num, hhmm, LS} = AKN;
+  AKN.boot(0);
+  const chip = document.querySelector('.topbar .chip'); if (chip) chip.remove();
+  $('#cls').innerHTML = `<option value="">전체 학급</option>` + (C.CLASSES || []).map(c => `<option value="${c}">${c}반</option>`).join('');
+  const saved = AKN.SS.get('akn_t', null);
+  if (saved) { $('#key').value = saved.key; $('#cls').value = saved.cls; }
+  if (AKN.isDemo()) $('#loginMsg').innerHTML = `체험 모드입니다. 비밀번호는 <b>${esc(C.DEMO_TEACHER_KEY)}</b> 이고, 이 기기에서 제출한 내용만 보여요.`;
+
+  let D = null, cur = 'status';
+  const TABLIST = [['status', '제출 현황'], ['game', '1·3차시 게임 기록'], ['alg', '4차시 알고리즘 비교'], ['tree', '4차시 결정 트리'], ['test', '7차시 사용자 테스트'], ['peer', '8차시 동료 평가'], ['ans', '교사용 예시 답'], ['xlsx', '엑셀 내려받기']];
+
+  $('#go').addEventListener('click', load);
+  async function load() {
+    const key = $('#key').value, cls = $('#cls').value;
+    $('#loginMsg').textContent = '불러오는 중…';
+    const res = await AKN.api({ action: 'all', key, cls });
+    if (!res.ok) { $('#loginMsg').textContent = res.error || '불러오지 못했습니다.'; return; }
+    AKN.SS.set('akn_t', { key, cls });
+    D = res.tabs; D.cls = cls;
+    $('#loginMsg').textContent = `${cls ? cls + '반' : '전체 학급'} · 제출 ${D['제출'].length}건 · ${new Date().toLocaleTimeString('ko-KR')} 기준`;
+    $('#main').style.display = '';
+    $('#tabs').innerHTML = TABLIST.map(([k, l]) => `<button type="button" data-t="${k}" class="${k === cur ? 'on' : ''}">${l}</button>`).join('') + `<button type="button" id="reload">↻ 새로고침</button>`;
+    $('#reload').addEventListener('click', load);
+    show(cur);
+  }
+  $('#tabs').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) show(b.dataset.t); });
+  function show(t) {
+    cur = t; $$('#tabs button[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+    ({ status, game, alg, tree, test, peer, ans, xlsx })[t]();
+  }
+  const sid = r => `${r['학급']}반 ${r['모둠']}모둠 ${r['번호']}번`;
+  const sortStu = (a, b) => (num(a['학급']) - num(b['학급'])) || (num(a['모둠']) - num(b['모둠'])) || (num(a['번호']) - num(b['번호']));
+  const card = (title, body) => `<section class="card"><h2>${title}</h2>${body}</section>`;
+  const tbl = (head, rows) => `<div class="tbl-wrap"><table class="t"><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('') || `<tr><td colspan="${head.length}" class="c hint">아직 자료가 없어요</td></tr>`}</tbody></table></div>`;
+
+  /* ---------- 제출 현황 ---------- */
+  function status() {
+    const subs = D['제출'];
+    const stu = {}; subs.forEach(r => { const k = `${r['학급']}|${r['모둠']}|${r['번호']}`; (stu[k] = stu[k] || { r, ws: {} }).ws[r['활동지']] = r; });
+    const list = Object.values(stu).sort((a, b) => sortStu(a.r, b.r));
+    const cnt = w => subs.filter(r => String(r['활동지']) === String(w)).length;
+    const head = `<tr><th>학생</th>${WS.map(w => `<th>활동지 ${w.id}<br><small>${w.lesson} · ${cnt(w.id)}명</small></th>`).join('')}</tr>`;
+    const body = list.map(s => `<tr><td class="lab">${esc(sid(s.r))}</td>${WS.map(w => { const r = s.ws[w.id]; return `<td class="c">${r ? `<span class="done" data-k="${esc(r['학급'])}|${esc(r['모둠'])}|${esc(r['번호'])}|${w.id}" title="${esc(hhmm(r['시각']))}">✔ 보기</span><br><small class="hint">${esc(hhmm(r['시각']))}</small>` : ''}</td>`; }).join('')}</tr>`).join('');
+    $('#pane').innerHTML = card('제출 현황', `<p class="hint">‘✔ 보기’를 누르면 학생이 제출한 활동지를 새 탭에서 그대로 볼 수 있어요. (읽기 전용)</p><div class="tbl-wrap"><table class="t mx"><thead>${head}</thead><tbody>${body || `<tr><td colspan="9" class="c hint">아직 제출이 없어요</td></tr>`}</tbody></table></div>`);
+  }
+  $('#pane').addEventListener('click', e => openSub(e));
+  function openSub(e) {
+    const s = e.target.closest('.done'); if (!s) return;
+    const [c, g, n, w] = s.dataset.k.split('|');
+    const r = D['제출'].find(x => String(x['학급']) === c && String(x['모둠']) === g && String(x['번호']) === n && String(x['활동지']) === w);
+    if (!r) return;
+    let data = {}; try { data = JSON.parse(r['내용']); } catch (err) { }
+    LS.set('akn_view', { data, user: { cls: c, grp: g, num: n } });
+    window.open(`ws${w}.html?view=1`, '_blank');
+  }
+
+  /* ---------- 1·3차시 게임 ---------- */
+  function game() {
+    const rows = D['게임기록'].slice().sort(sortStu);
+    const odd = r => r['질문수'] === '' || r['질문수'] == null || isNaN(Number(r['질문수'])) || Number(r['질문수']) <= 0 || Number(r['질문수']) > 100;
+    const good = rows.filter(r => !odd(r));
+    const S = ['순서대로', '아무 수나', '우리 방법'];
+    const m1 = S.map(s => { const v = avg(good.filter(r => String(r['활동지']) === '1' && r['전략'] === s).map(r => Number(r['질문수']))); return v == null ? null : round(v, 2); });
+    const m3 = ['1~30', '1~100'].map(g => { const v = avg(good.filter(r => String(r['활동지']) === '3' && r['범위'] === g).map(r => Number(r['질문수']))); return v == null ? null : round(v, 2); });
+    $('#pane').innerHTML = card('그래프 (이상한 기록 뺀 평균)', `<div class="row"><div><h3>1차시 전략별 평균 질문 수</h3><div class="chartbox"><canvas id="c1"></canvas></div></div><div><h3>3차시 챔피언전 범위별 평균</h3><div class="chartbox"><canvas id="c3"></canvas></div><p class="hint">계산값: 1~30 최대 5번(평균 약 4.1번), 1~100 최대 7번(평균 약 5.8번)</p></div></div>`) +
+      card(`전체 기록 ${rows.length}개 · 이상한 기록 ${rows.filter(odd).length}개 (빨간 줄)`, tbl(['학생', '활동지', '판', '범위', '전략', '부른 수', '질문 수'], rows.map(r => `<tr class="${odd(r) ? 'flag' : ''}"><td>${esc(sid(r))}</td><td class="c">${esc(r['활동지'])}</td><td class="c">${esc(r['판'])}</td><td class="c">${esc(r['범위'])}</td><td>${esc(r['전략'])}</td><td>${esc(r['부른수'])}</td><td class="c">${esc(r['질문수'])}</td></tr>`)));
+    AKN.chart($('#c1'), { type: 'bar', data: { labels: S, datasets: [{ label: '평균 질문 수', data: m1, backgroundColor: ['#1F3B63', '#E0873A', '#2E9E6B'], borderRadius: 8 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+    AKN.chart($('#c3'), { type: 'bar', data: { labels: ['1~30', '1~100'], datasets: [{ label: '우리 반 평균', data: m3, backgroundColor: '#1F3B63', borderRadius: 8 }, { label: '이진 탐색 최대(계산)', data: [5, 7], backgroundColor: '#E2B04A', borderRadius: 8 }] }, options: { scales: { y: { beginAtZero: true } } } });
+  }
+
+  /* ---------- 4차시 알고리즘 ---------- */
+  function alg() {
+    const rows = D['알고리즘비교'], NS = [10, 20, 60, 100];
+    const data = [1, 2, 3].map(a => NS.map(n => { const v = avg(rows.filter(r => String(r['알고리즘']) === String(a) && String(r['최댓값']) === String(n)).map(r => num(r['최대']))); return v == null ? null : round(v, 1); }));
+    const ans = { 1: n => n, 2: n => n, 3: n => ({ 10: 4, 20: 5, 60: 6, 100: 7 })[n] };
+    const wrong = rows.filter(r => num(r['최대']) != null && num(r['최대']) !== ans[r['알고리즘']](num(r['최댓값'])));
+    $('#pane').innerHTML = card('반 평균 최대 수행 횟수', `<div class="chartbox"><canvas id="ca"></canvas></div><p class="hint">정답: 알고리즘 1·2는 최댓값과 같은 수, 알고리즘 3은 10→4, 20→5, 60→6, 100→7 · 정답과 다른 입력 <b>${wrong.length}</b>개</p>`) +
+      card('정답과 다른 입력', tbl(['학생', '알고리즘', '최댓값', '최소', '최대(입력)', '정답 최대'], wrong.sort(sortStu).map(r => `<tr><td>${esc(sid(r))}</td><td class="c">${esc(r['알고리즘'])}</td><td class="c">${esc(r['최댓값'])}</td><td class="c">${esc(r['최소'])}</td><td class="c bad">${esc(r['최대'])}</td><td class="c">${ans[r['알고리즘']](num(r['최댓값']))}</td></tr>`)));
+    AKN.chart($('#ca'), { type: 'line', data: { labels: NS.map(String), datasets: ['알고리즘 1', '알고리즘 2', '알고리즘 3'].map((l, i) => ({ label: l, data: data[i], borderColor: AKN.PALETTE[i], backgroundColor: AKN.PALETTE[i], borderWidth: 3, spanGaps: true, borderDash: i === 1 ? [8, 6] : [] })) }, options: { scales: { x: { title: { display: true, text: '최댓값' } }, y: { beginAtZero: true } } } });
+  }
+
+  /* ---------- 4차시 결정 트리 ---------- */
+  function tree() {
+    const rows = D['결정트리'].slice().sort((a, b) => num(a['평균']) - num(b['평균']));
+    $('#pane').innerHTML = card('학생별 결정 트리 평균 질문 수', `<div class="chartbox"><canvas id="ct"></canvas></div><p class="hint">기준선: 하나씩 묻기 8.44 · 치우친 질문부터 5.31 · 절반으로 나누는 질문부터 4.13</p>`) +
+      card('결정 트리 기록', tbl(['학생', '첫 질문', '예 : 아니오', '합계', '평균', '최대'], rows.map(r => `<tr><td>${esc(sid(r))}</td><td>${esc(r['첫질문'])}</td><td class="c">${esc(r['예수'])} : ${esc(r['아니오수'])}</td><td class="c">${esc(r['합계'])}</td><td class="c"><b>${esc(r['평균'])}</b></td><td class="c">${esc(r['최대'])}</td></tr>`)));
+    AKN.chart($('#ct'), { type: 'bar', data: { labels: rows.map(r => `${r['모둠']}-${r['번호']}`), datasets: [{ label: '평균 질문 수', data: rows.map(r => num(r['평균'])), backgroundColor: rows.map(r => num(r['평균']) <= 4.2 ? '#2E9E6B' : num(r['평균']) <= 5.4 ? '#E2B04A' : '#C0392B'), borderRadius: 6 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, suggestedMax: 9 } } } });
+  }
+
+  /* ---------- 7차시 ---------- */
+  function test() {
+    const rows = D['사용자테스트'].slice().sort(sortStu);
+    const gs = [...new Set(rows.map(r => `${r['학급']}-${r['모둠']}`))];
+    const v = (g, k, f) => { const a = rows.filter(r => `${r['학급']}-${r['모둠']}` === g && r['구분'] === k).map(r => num(r[f])); const m = avg(a); return m == null ? null : round(m, 1); };
+    $('#pane').innerHTML = card('모둠별 정답률 (첫 테스트 → 재테스트)', `<div class="chartbox"><canvas id="cs"></canvas></div>`) +
+      card('사용자 테스트 기록', tbl(['학생', '구분', '테스트 수', '맞힌 수', '정답률(%)', '평균 질문 수'], rows.map(r => `<tr><td>${esc(sid(r))}</td><td class="c">${esc(r['구분'])}</td><td class="c">${esc(r['테스트수'])}</td><td class="c">${esc(r['맞힌수'])}</td><td class="c">${esc(r['정답률'])}</td><td class="c">${esc(r['평균질문수'])}</td></tr>`)));
+    AKN.chart($('#cs'), { type: 'bar', data: { labels: gs.map(g => g.replace('-', '반 ') + '모둠'), datasets: [{ label: '첫 테스트', data: gs.map(g => v(g, '첫 테스트', '정답률')), backgroundColor: '#B4BDCB', borderRadius: 6 }, { label: '재테스트', data: gs.map(g => v(g, '재테스트', '정답률')), backgroundColor: '#2E9E6B', borderRadius: 6 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+  }
+
+  /* ---------- 8차시 ---------- */
+  function peer() {
+    const rows = D['동료평가'].slice().sort((a, b) => (num(a['학급']) - num(b['학급'])) || (num(a['대상모둠']) - num(b['대상모둠'])));
+    $('#pane').innerHTML = card('동료 평가 (받은 모둠 순)', tbl(['학급', '받은 모둠', '보낸 학생', '주제', '숫자 근거', '잘한 점', '질문·제안'], rows.map(r => `<tr><td class="c">${esc(r['학급'])}반</td><td class="c"><b>${esc(r['대상모둠'])}모둠</b></td><td>${esc(r['모둠'])}모둠 ${esc(r['번호'])}번</td><td>${esc(r['주제'])}</td><td>${esc(r['근거'])}</td><td>${esc(r['잘한점'])}</td><td>${esc(r['질문제안'])}</td></tr>`)));
+  }
+
+  /* ---------- 예시 답 ---------- */
+  function ans() {
+    $('#pane').innerHTML = `<section class="card ans">
+<h2>교사용 예시 답</h2><p class="hint">학생 화면에는 보이지 않습니다. 수업 정리나 피드백에 활용하세요.</p>
+<h3>활동지 1 (1차시)</h3><ul>
+<li>데이터 다듬기: 질문 수 0번은 기록 실수 → 짝에게 다시 확인하거나 계산에서 뺀다. 빈칸(끝까지 못 함)은 결측치 → 평균에서 빼고 “못 맞힌 판 ○개”로 따로 적는다.</li>
+<li>막대그래프 해석(일반적 결과): 가장 적은 전략은 ‘우리 방법(가운데 부르기)’, 가장 많은 전략은 ‘순서대로’. 반 데이터에 따라 달라질 수 있음.</li>
+<li>문제 진술문 예: 우리는 (도서관 이용자)가 (많은 책 중 한 권을 찾는 상황)에서 (오래 걸리는 불편)을 겪는다는 것을 데이터 (순서대로 부르면 평균 15번 이상)로 확인했다.</li></ul>
+<h3>활동지 2 (2차시)</h3><ul>
+<li>입력: 사용자의 예/아니오 대답 · 처리: 대답과 다른 후보 지우기 · 출력: 남은 후보(정답) 말하기</li>
+<li>출구 카드: “누가 대답해도 같은 답이 나오고, 후보를 절반에 가깝게 나누는” 질문</li></ul>
+<h3>활동지 3 (3차시)</h3><ul>
+<li>② 중간값 15, 업이면 다음 최솟값 16, 다운이면 다음 최댓값 14 · 이름: 이진 탐색(남은 범위의 가운데를 부르고 절반을 버리는 방법)</li>
+<li>③·④ 빈칸: 1, 30, ≤, 버림, +1, −1</li>
+<li>⑤ 사람 컴퓨터(바른 순서도): 1 → 15, 7, 3, 1 (4번) · 30 → 15, 23, 27, 29, 30 (5번) · 22 → 15, 23, 19, 21, 22 (5번)</li>
+<li>+1이 빠지면 비밀 수 30: 15 → 22 → 26 → 28 → 29 → 29 → … 멈추지 못함</li></ul>
+<img src="assets/img/flow_answer.png" alt="업다운 이진 탐색 순서도 완성본">
+<h3>활동지 4 (4차시)</h3>
+<table class="t"><thead><tr><th>최댓값</th><th>10</th><th>20</th><th>60</th><th>100</th></tr></thead><tbody>
+<tr><td class="lab">알고리즘 1·2 (최소/최대)</td><td class="c">1 / 10</td><td class="c">1 / 20</td><td class="c">1 / 60</td><td class="c">1 / 100</td></tr>
+<tr><td class="lab">알고리즘 3 (최소/최대)</td><td class="c">1 / 4</td><td class="c">1 / 5</td><td class="c">1 / 6</td><td class="c">1 / 7</td></tr></tbody></table>
+<ul><li>선그래프 해석: 10배, 3번 · 알고리즘 2의 최대 = 알고리즘 1 (한 번에 하나씩만 지우므로)</li>
+<li>② 정렬되어(순서대로 놓여) 있어야 한다 · 사전은 가나다순, 도서관 책은 청구기호(번호)순</li>
+<li>③ 좋은 트리(포유류부터): 평균 4.13번(66÷16), 최대 5번</li>
+<li>④ 2를 20번 곱하면 1,048,576 → 일부 수용: 질문마다 후보를 정확히 절반으로 나눌 때만 성립</li></ul>
+<img src="assets/img/tree.png" alt="동물 카드 16장 결정 트리">
+<h3>활동지 5 (5차시)</h3><ul>
+<li>블록 꾸러미 예: 1·4 자료(변수 정하기/더하기) · 2 흐름(~인 동안 반복하기) + 판단 · 3 계산(몫) · 5 자료(묻고 대답 기다리기) · 6~8 흐름(만일 ~이라면) + 판단</li>
+<li>③ 예외 처리: 23(16/22) → 19(16/18) → 17(16/16) → 16(16/15). 최소 16 > 최대 15가 됨 → “대답을 확인해 주세요” 말하고 멈춤</li>
+<li>검사 블록: 만일 &lt;최소 &gt; 최대&gt; 이라면 → “대답을 확인해 주세요” 말하기 → 모든 코드 멈추기 (대답을 들은 뒤 또는 가운데를 구하기 전 모두 가능)</li>
+<li>출구 카드: 같은 수를 계속 부르는(무한 반복) 문제 · 반복이 끝나는 조건: 정답이거나 최소 &gt; 최대가 될 때</li></ul>
+<h3>활동지 6 (6차시)</h3><ul>
+<li>예시(동물 8마리·특징 5개): 순서 A(포유류→날기→물속→다리6→풀) 평균 약 3.6번, 순서 B(다리6→풀→물속→날기→포유류) 평균 약 4.1번</li>
+<li>출구 카드: 번호가 어긋나면 다른 대상의 특징으로 판단하게 되므로 · 질문을 더 넣거나 남은 후보를 “○○입니까?”로 묻기</li></ul>
+<h3>활동지 7 (7차시)</h3><ul>
+<li>나비를 생각하고 ‘물속에 사는가’를 실수로 ‘예’ → 규칙 프로그램: 후보 0개 / AI: 가장 비슷한 나비</li>
+<li>고래를 생각하고 ‘포유류’를 ‘아니오’ → 규칙·AI 모두 상어 (AI도 학습 데이터에 없는 실수에는 틀릴 수 있음)</li>
+<li>출구 카드: (한 번의) 틀린 입력 · 학습 데이터</li></ul>
+<h3>활동지 8 (8차시)</h3><ul>
+<li>사전(단어·가나다순·정렬) / 도서관(책·청구기호·정렬) / 분리배출(배출 방법·재질 질문·질문) / 병원 문진표(진료과·증상 질문·질문)</li>
+<li>데이터 오염: AI가 “고래는 난다”는 쪽으로 학습해 고래를 새로 잘못 분류 → 이상치 찾아 지우기, 같은 사람의 반복 입력 제한, 사람이 검토</li>
+<li>질문 속 편향 예: “여자인가요?” → 성별 고정관념 → “조선 시대 인물인가요?” / “잘생겼나요?” → 주관적 → “안경을 쓴 초상화인가요?” / “살기 좋은 곳인가요?” → 주관적 → “바다와 맞닿아 있나요?”</li></ul>
+</section>`;
+  }
+
+  /* ---------- 엑셀 ---------- */
+  function xlsx() {
+    $('#pane').innerHTML = card('엑셀 내려받기', `<p class="hint">지금 불러온 ${D.cls ? D.cls + '반' : '전체 학급'} 자료를 시트별로 묶어 한 파일(.xlsx)로 내려받습니다. ‘제출’ 시트의 ‘내용’ 칸에는 학생 활동지 원본(JSON)이 들어 있어요.</p><div class="btns"><button class="btn" id="dl" type="button">엑셀 파일 내려받기</button></div>`);
+    $('#dl').addEventListener('click', () => {
+      if (!window.XLSX) { AKN.toast('엑셀 도구를 불러오지 못했어요 (인터넷 연결 확인)'); return; }
+      const wb = XLSX.utils.book_new();
+      Object.keys(TABS).forEach(t => {
+        const rows = (D[t] || []).map(r => TABS[t].map(h => r[h] == null ? '' : r[h]));
+        const ws = XLSX.utils.aoa_to_sheet([TABS[t], ...rows]);
+        ws['!cols'] = TABS[t].map(h => ({ wch: h === '내용' ? 60 : h === '시각' ? 22 : 12 }));
+        XLSX.utils.book_append_sheet(wb, ws, t);
+      });
+      const d = new Date(); const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+      XLSX.writeFile(wb, `아키네이터_${D.cls ? D.cls + '반' : '전체'}_${ymd}.xlsx`);
+    });
+  }
+})();
+</script>
+</body>
+</html>

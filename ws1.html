@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>활동지 1 · UP & DOWN 게임 데이터 탐정</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <div class="ws-head"><span class="tag">1차시</span><span class="tag">문제 발견</span>
+    <h1>[활동지 1] UP & DOWN 게임 데이터 탐정</h1>
+    <p>짝과 업다운 게임을 3판 하고, 반 전체 기록으로 “왜 누구는 빨리 찾고 누구는 오래 걸릴까?”를 찾아봅니다.</p></div>
+
+  <section class="card">
+    <h2><span class="n">1</span> 게임 기록표 (범위 1~30)</h2>
+    <p class="hint">짝이 비밀 수를 정하면, 판마다 정해진 전략으로 수를 부르고 <b>부른 수를 차례대로</b> 적습니다. 질문 수는 자동으로 세어 줘요. 짝이 없으면 <b>컴퓨터와 게임</b>을 눌러 혼자 해도 됩니다.</p>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th style="width:50px">판</th><th>전략</th><th>부른 수의 순서 (예: 1, 2, 3, 4)</th><th style="width:90px">질문 수</th><th class="no-view no-print" style="width:120px"></th></tr></thead>
+      <tbody id="games"></tbody>
+    </table></div>
+    <p class="hint">끝까지 못 맞혔다면 질문 수 칸을 비워 두세요. (2번에서 ‘결측치’로 다룹니다)</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span> 반 전체 데이터 모으기와 다듬기</h2>
+    <p class="hint">먼저 아래 <b>제출하기</b>를 눌러 내 기록을 공유 시트에 보낸 뒤, <b>반 전체 기록 불러오기</b>를 누르세요.</p>
+    <div class="btns no-view"><button class="btn" id="load" type="button">반 전체 기록 불러오기</button>
+      <label class="ck"><input type="checkbox" id="clean" data-k="clean"> 이상한 기록 빼고 계산하기</label></div>
+    <div id="classInfo" class="hint"></div>
+    <div class="tbl-wrap" style="max-height:280px;overflow:auto"><table class="t" id="classTbl"></table></div>
+    <div class="chartbox"><canvas id="bar"></canvas></div>
+    <div class="line"><b>[데이터 다듬기]</b> 반 전체 표에서 이상한 기록 찾기: 예) 질문 수 0번(기록 실수), 빈칸(끝까지 못 함) → 어떻게 처리할까?</div>
+    <textarea data-k="clean_how" placeholder="예) 0번은 기록 실수이므로 빼고, 빈칸은 …"></textarea>
+    <div class="line"><b>[막대그래프 해석]</b> 평균 질문 수가 가장 적은 전략은 <input class="blank" data-k="g_min" style="width:150px">, 가장 많은 전략은 <input class="blank" data-k="g_max" style="width:150px">이다.</div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span> 문제 진술문</h2>
+    <div class="line">“우리는 <input class="blank" data-k="st1" placeholder="누가" style="width:120px">
+      <input class="blank" data-k="st2" placeholder="어떤 상황" style="width:170px">에서 많은 후보 중 원하는 것을 찾을 때
+      <input class="blank" data-k="st3" placeholder="어떤 불편" style="width:170px">을 겪는다는 것을 데이터
+      <input class="blank" data-k="st4" placeholder="근거" style="width:200px">로 확인했다.
+      적은 질문으로 반드시 찾는 방법이 있다면 <input class="blank" data-k="st5" placeholder="누구" style="width:120px">에게
+      <input class="blank" data-k="st6" placeholder="어떤 도움" style="width:200px">이 된다.”</div>
+  </section>
+
+  <section class="card exit">
+    <h2><span class="n">★</span> 출구 카드</h2>
+    <div class="line">아키네이터의 비밀은 <input class="blank" data-k="exit" style="width:min(420px,70vw)">일 것이다.</div>
+  </section>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/common.js"></script>
+<script>
+(function(){
+  const {$, esc, parseSeq, avg, round, get, set} = AKN;
+  const STR = ['순서대로(1, 2, 3 …)', '아무 수나', '우리가 생각한 방법'];
+  const SHORT = ['순서대로', '아무 수나', '우리 방법'];
+  if (!AKN.boot(1, { records })) return;
+
+  $('#games').innerHTML = STR.map((s, i) => `<tr><td class="c lab">${i + 1}</td><td class="lab">${esc(s)}</td>
+    <td><input type="text" data-k="seq${i}" placeholder="부른 수를 쉼표로"></td>
+    <td><input type="number" data-k="cnt${i}" min="0" style="text-align:center"></td>
+    <td class="no-view no-print"><button type="button" class="btn sm ghost" data-g="${i}">컴퓨터와 게임</button></td></tr>`).join('');
+
+  document.addEventListener('akn:change', e => {
+    const k = e.detail.k; const m = /^seq(\d)$/.exec(k);
+    if (m) { const n = parseSeq(get(k)).length; set('cnt' + m[1], n ? n : ''); }
+    if (k === 'clean') draw();
+  });
+  $('#games').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-g]'); if (!b) return;
+    const i = b.dataset.g;
+    const seq = await AKN.updownGame(30, `${i * 1 + 1}판 · ${SHORT[i]}`);
+    if (seq) { set('seq' + i, seq.join(', ')); set('cnt' + i, seq.length); }
+  });
+
+  function records() {
+    const rows = [];
+    for (let i = 0; i < 3; i++) {
+      const seq = get('seq' + i, ''), c = get('cnt' + i, '');
+      if (String(seq).trim() === '' && String(c).trim() === '') continue;
+      rows.push({ '판': i + 1, '범위': '1~30', '전략': SHORT[i], '부른수': parseSeq(seq).join(' → '), '질문수': c === '' ? '' : Number(c) });
+    }
+    return { '게임기록': rows };
+  }
+
+  let classRows = [];
+  const isOdd = r => r['질문수'] === '' || r['질문수'] == null || isNaN(Number(r['질문수'])) || Number(r['질문수']) <= 0 || Number(r['질문수']) > 30;
+  async function load() {
+    const u = AKN.user(); $('#classInfo').textContent = '불러오는 중…';
+    const res = await AKN.api({ action: 'records', tab: '게임기록', cls: u.cls });
+    if (!res.ok) { $('#classInfo').textContent = res.error || '불러오지 못했어요'; return; }
+    classRows = (res.rows || []).filter(r => String(r['활동지']) === '1');
+    draw();
+  }
+  function draw() {
+    if (!classRows.length) { $('#classInfo').textContent = '아직 우리 반 기록이 없어요. 먼저 제출해 보세요.'; return; }
+    const clean = !!get('clean', false);
+    const odd = classRows.filter(isOdd).length;
+    $('#classInfo').innerHTML = `우리 반 기록 <b>${classRows.length}</b>개 · 이상한 기록(빨간 줄) <b>${odd}</b>개 ${clean ? '→ 빼고 계산 중' : '→ 그대로 계산 중'}`;
+    $('#classTbl').innerHTML = `<thead><tr><th>모둠-번호</th><th>판</th><th>전략</th><th>부른 수</th><th>질문 수</th></tr></thead><tbody>` +
+      classRows.map(r => `<tr class="${isOdd(r) ? 'flag' : ''}"><td class="c">${esc(r['모둠'])}-${esc(r['번호'])}</td><td class="c">${esc(r['판'])}</td><td>${esc(r['전략'])}</td><td>${esc(r['부른수'])}</td><td class="c">${r['질문수'] === '' ? '(빈칸)' : esc(r['질문수'])}</td></tr>`).join('') + `</tbody>`;
+    const use = clean ? classRows.filter(r => !isOdd(r)) : classRows.filter(r => r['질문수'] !== '' && !isNaN(Number(r['질문수'])));
+    const means = SHORT.map(s => avg(use.filter(r => r['전략'] === s).map(r => Number(r['질문수']))));
+    AKN.chart($('#bar'), { type: 'bar',
+      data: { labels: SHORT, datasets: [{ label: '평균 질문 수', data: means.map(v => v == null ? null : round(v, 1)), backgroundColor: ['#1F3B63', '#E0873A', '#2E9E6B'], borderRadius: 8 }] },
+      options: { plugins: { legend: { display: false }, title: { display: true, text: `전략별 평균 질문 수 (${clean ? '이상한 기록 뺌' : '모든 기록'})` } }, scales: { y: { beginAtZero: true, title: { display: true, text: '번' } } } } });
+  }
+  $('#load').addEventListener('click', load);
+  AKN.ready();
+})();
+</script>
+</body>
+</html>
