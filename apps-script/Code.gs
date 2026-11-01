@@ -81,6 +81,13 @@ function handleGet(p) {
     rows.sort(function (x, y) { return String(y['시각']).localeCompare(String(x['시각'])); });
     return { ok: true, row: rows.length ? rows[0] : null };
   }
+  if (a === 'mystatus') {   // 이 학생이 제출한 활동지 목록 (첫 화면 ‘제출함’ 표시용)
+    const ws = {};
+    readRows('제출').forEach(function (r) {
+      if (same(r['학급'], p.cls) && same(r['모둠'], p.grp) && same(r['번호'], p.num)) ws[r['활동지']] = r['시각'];
+    });
+    return { ok: true, ws: ws };
+  }
   if (a === 'feedback') {
     return { ok: true, rows: readRows('동료평가').filter(function (r) { return same(r['학급'], p.cls) && same(r['대상모둠'], p.grp); }) };
   }
